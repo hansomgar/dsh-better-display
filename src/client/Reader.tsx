@@ -1,6 +1,6 @@
 import type {} from '@deepseek-ai/dsh-session-turn-outline/types';
 import type {} from '@deepseek-ai/dsh-agent/types';
-import { Fragment, memo, useCallback, useEffect, useId, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { Fragment, memo, useCallback, useContext, useEffect, useId, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import type { ChatConversationViewNode, ChatNode, ChatNodeKind, ChatNodeOwnerProps } from '@deepseek-ai/dsh-client-ui-chat/client';
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store';
@@ -11,7 +11,7 @@ import { ToolActivity, ToolMedia } from './ToolActivity.js';
 import { OfficialNode, OfficialTail } from './OfficialContent.js';
 import { OFFICIAL_SEATS, readerGroupAction } from './official-slots.js';
 import { preparingLabel, readerFlow } from './tool-activity.js';
-import { Disclosure, ProcessFragment, RetiringTurns, StatusText, useMotionAllowed, usePinnedSelection, useReadingScroll } from './motion.js';
+import { Disclosure, ProcessFragment, RetiringTurnContext, RetiringTurns, StatusText, useMotionAllowed, usePinnedSelection, useReadingScroll } from './motion.js';
 import { StreamMotionContext } from './streaming.js';
 import { boundaryOf, forkAnchorSeq, groupNodes, hasProcessContent, processChoiceKey, processExpanded, terminalLabel } from './projection.js';
 import { basename, dirname, getTurnDeliverables, showDeliverablesRow } from './deliverables.js';
@@ -532,6 +532,10 @@ const TurnGroup = memo(function TurnGroup({ group, motion, autoFold, pinnedKeys,
     }
     return undefined;
   }, [group.keys, nodes]);
+  // The host anchors each turn's tail at data-turn-tail={data.turn}; mirror it
+  // only for the turn this group renders, and never on a retiring copy (#88).
+  const retiring = useContext(RetiringTurnContext);
+  const anchorTurn = !retiring && tailData && tailData.turn === group.turn ? tailData.turn : undefined;
   const tailOwner = useMemo(() => turn && tailData ? {
     turn, seq: tailData.closing?.finalNode.seq ?? tailData.seq, openFile: props.openFile,
   } : undefined, [turn, tailData, props.openFile]);
@@ -636,7 +640,7 @@ const TurnGroup = memo(function TurnGroup({ group, motion, autoFold, pinnedKeys,
       <GroupStatus group={group} useChat={props.useChat} pending={interaction} motion={motion} />
     </div>}
     {showDeliverablesRow(boundary.status, deliverables) && <DeliverablesRow deliverables={deliverables} openFile={props.openFile} revealFile={props.revealFile} openMode={openMode} />}
-    {boundary.status === 'closed' && <BlockBoundary><OfficialTail official={official} owner={tailOwner} produced={deliverables} /></BlockBoundary>}
+    {boundary.status === 'closed' && <BlockBoundary><OfficialTail official={official} owner={tailOwner} produced={deliverables} anchorTurn={anchorTurn} /></BlockBoundary>}
     {showTerminalNotice && <div className={css.notice} data-reader-terminal>{terminal}</div>}
   </section></ImageViewerScope>;
 });
