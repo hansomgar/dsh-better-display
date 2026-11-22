@@ -1,5 +1,43 @@
 # Changelog
 
+## 4.1.0 — 2026-11-22
+
+The reading view carries this fork's own work on top of upstream 0.4.0. Everything
+upstream shipped is here — the 0.2.2 support, the `apply_patch` row, the Markdown parser
+fixes, the UNC refusal, the four community fixes — plus the features this fork added and
+upstream never had.
+
+- **A turn clock** above the composer while a turn runs, and under that turn's last
+  message once it closes: `HH:mm:ss · 本轮求索中 · 开始于 HH:mm:ss · 已用时 N 分 NN 秒`,
+  then `HH:mm:ss · ● 本轮求索完成 · 时段 … – … · 用时 …`. The leading reading is the
+  viewer's own wall clock and keeps ticking in both phases; only the status word, its
+  shimmer and the trailing fields follow the turn. While running it is mounted into the
+  Host's `conversation.input.dock`, which sits over the scrollport, so no scroll can
+  move it; a `sticky` row inside the transcript was re-laid-out every scroll frame and
+  read as shaking.
+- **A full-screen picture viewer** for both image surfaces, opened by clicking a
+  picture. The wheel zooms about the pointer between 0.5× and 8×, dragging pans at any
+  scale and leaves the picture where it was put, a minimap shows where you are while
+  dragging, space or `0` returns to 100% zoomed out and centred, and the caption — the
+  authored path — copies on double-click.
+- **Paging through a turn's pictures**, `‹ 1/N ›` with a disabled arrow at either end.
+  Opening from a tool call pages through everything the turn produced; opening from the
+  answer pages through the answer's own pictures. Both follow page order, because that is
+  the order the reader reads.
+- **A picture a file link names**, kept under the link's chip: `[名字](G:\...\a.png)`
+  renders the blue chip with its icon and the picture beneath it, the way the original
+  view does. A reference inside a heading stays on one line, and one inside bold, italic
+  or a link stays inline.
+- **A file chip's target opens in the right-hand preview panel**, through the Host's own
+  `MarkdownDelegateProvider`, not a detached overlay.
+- **A bare file name in backticks stays code.** A token has to look like a path — it
+  carries a separator, or it is the whole path the vocabulary resolved — so
+  `` `deliverables.ts` `` stays plain text while `src/client/deliverables.ts` is a chip.
+
+`tsc`, `eslint --max-warnings 0`, and 409 tests. `skill-status.test.ts > plugin-tree
+skills/ is not a harness skill root` fails on upstream's main too: it asserts a POSIX
+path where Windows reports a drive letter.
+
 ## 0.4.0 — 2026-11-20
 
 - **Support DeepSeek Harness 0.2.2.** Built against `0.2.2-rc.5` (`dsh-v0.2.2-rc.5`, `9c2670d3bce5275e0d1610272958121af87787bb`); the 0.2.1 line stays supported. The `@deepseek-ai/dsh-*` peers and `engines.dsh` are `>=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.5 <0.2.3-0`: the 0.2.1 line from rc.1 (stable `0.2.1` included) and the 0.2.2 line from rc.5 (stable `0.2.2` included). `0.2.2-rc.1`–`rc.4`, which were not tested, and `0.2.3` are rejected. The `-0` bounds make npm and the Host installer, which checks `engines.dsh` with prereleases included, give the same answer. The `@deepseek-ai/cordis` peer also accepts `~4.1.0`, which the 0.2.2 packages use. The compat baseline (`compat/harness.json`, renamed from `compat/harness-rc2.json`) is re-recorded on 0.2.2-rc.5 after reviewing every changed file. The Harness tag CI and publish clone is `dsh-v` plus that file's `harnessVersion`. See [Harness 0.2.2 适配](docs/official-rendering-bridge.md#harness-022-适配).

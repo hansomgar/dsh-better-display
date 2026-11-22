@@ -12,7 +12,7 @@ Open **Settings → Plugins → Add plugin** and enter this in “Package name o
 github:aa2246740/dsh-better-display#v0.3.12
 ```
 
-The desktop plugin manager owns the Desktop profile and its bundled package manager. `v0.3.12` is the latest tagged install target and targets Harness `0.2.1-rc.5`. The Host checks `engines.dsh` with prereleases included, so it also installs on 0.2.2 RCs, but tool-result images fail to load there. Harness 0.2.2 support is in 0.4.0, which is not tagged yet; until then, install from a local checkout on 0.2.2 as shown below. This tag includes built `lib/`; normal use needs no clone, build, or DSHX installation. Follow the app if it asks you to reload or reopen after installation.
+The desktop plugin manager owns the Desktop profile and its bundled package manager. This branch is `4.1.0`, built for Harness `0.2.2-rc.5` while keeping the 0.2.1 line: `engines.dsh` is `>=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.5 <0.2.3-0`. It carries upstream 0.4.0 plus this fork's own reading-view work (turn clock, picture viewer, per-turn paging, picture rendering for file links). `lib/` is built and distributed with the repo; normal use needs no clone, build, or DSHX installation. Follow the app if it asks you to reload or reopen after installation.
 
 ### Web CLI
 
@@ -36,7 +36,7 @@ From a local checkout or tarball (development/local testing):
 
 ```sh
 dsh plugin --profile web add ./dsh-better-display
-dsh plugin --profile web add ./dsh-better-display-0.4.0.tgz
+dsh plugin --profile web add ./dsh-better-display-4.1.0.tgz
 ```
 
 `dsh.bundle` is captured at Host boot. Do not also insert the same row by hand in the profile `cordis.patch.yml`, or it will mount twice.
