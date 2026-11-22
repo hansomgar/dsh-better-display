@@ -206,7 +206,6 @@ const MainNode = memo(function MainNode({ useChat, nodeKey, boundary, pinned, pr
         forkAt: render.forkAt ?? (() => {}),
         inspectCall: callId => official.openView('trajectory', callId),
         loadImage: official.officialImageLoader,
-        fileMentions: official.officialFileMentions,
         sessionId: render.sessionId,
       };
       const options = { hookContext: { turnData: turn?.data, disclosureReset, useGroupAction: readerGroupAction }, fallback };

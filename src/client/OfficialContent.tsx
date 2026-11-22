@@ -45,7 +45,6 @@ function chatNodeOwner(render: BlockRenderProps, official: NonNullable<BlockRend
     forkAt: render.forkAt ?? (() => {}),
     inspectCall: callId => official.openView('trajectory', callId),
     loadImage: official.officialImageLoader,
-    fileMentions: official.officialFileMentions,
   };
 }
 
