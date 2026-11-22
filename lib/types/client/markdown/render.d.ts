@@ -144,6 +144,18 @@ export declare function UnavailableImage({ alt, destination, state }: {
     state: 'unresolved' | 'failed';
 }): ReactNode;
 /**
+<<<<<<< HEAD
+=======
+ * Tag a Host file-route image URL with its mount's load number. Browsers reuse
+ * a same-URL image within one document despite `no-store`, so without the tag
+ * a newly rendered image of a rewritten file would show the earlier bytes.
+ * @param url - Absolute resolved image URL; URLs outside the `api/file` route stay unchanged.
+ * @param load - Number allocated once per mounted image.
+ * @returns The URL with a `load` query parameter, or the unchanged URL.
+ */
+export declare function freshImageUrl(url: string, load: number): string;
+/**
+>>>>>>> origin/main
  * Render the trailing footnote section for every footnote referenced during
  * the pass, in first-reference order, with one plain-text back-reference
  * marker per rendered reference.

@@ -1,20 +1,11 @@
 // Adapted from DeepSeek Harness b150a551b8d465e31e418e1b2eaf5e79bbb7d28e (MIT). See THIRD_PARTY_NOTICES.md.
 /**
- * Direct mdast→React markdown renderer. Replaces the react-markdown /
- * remark-rehype pipeline with one switch over parsed nodes so streaming can
- * cache frozen blocks as React elements; the rendered DOM is pinned
- * byte-for-byte by `tests/fixtures/markdown-dom` and must not drift.
- *
- * Untrusted-output policy (unchanged from the replaced pipeline): link and
- * image destinations pass a protocol allowlist, images additionally require
- * absolute HTTP(S), raw HTML renders as literal text (no HTML enters the
- * DOM), and KaTeX runs without trusted commands. Fragment-anchor URLs fail
- * the allowlist, so footnote references and back-references render as plain
- * text rather than in-page links.
- *
- * Merge-extensible node unions fall through the documented default (render
- * nothing) rather than ending in assertNever: grammars registered elsewhere
- * may add node types this renderer has no mapping for.
+ * Direct mdast→React markdown renderer: one switch over parsed nodes, so streaming can
+ * cache frozen blocks as React elements. The rendered DOM is pinned by
+ * `tests/fixtures/markdown-dom` and must not drift. Untrusted output follows the replaced
+ * pipeline's policy: link and image destinations pass a protocol allowlist, images
+ * additionally require absolute HTTP(S), raw HTML renders as literal text, and KaTeX runs
+ * without trusted commands. Unknown node types render nothing rather than assertNever.
  */
 
 import { Fragment, createElement, useState } from 'react';
@@ -197,10 +188,9 @@ export function renderBlocks(
 }
 
 /**
- * Interleave the newline text nodes the replaced pipeline emitted between
- * block-level children. They are invisible between elements but coalesce
- * into adjacent literal raw-HTML text, where the DOM parity fixtures pin
- * them.
+ * Interleave the newline text nodes the replaced pipeline emitted between block-level
+ * children. They are invisible between elements but coalesce into adjacent literal
+ * raw-HTML text, where the DOM parity fixtures pin them.
  * @param elements - Rendered block children with empty renders already dropped.
  * @param edges - Also emit the leading and trailing newline (hast's loose wrap).
  * @returns The interleaved children.
@@ -614,12 +604,10 @@ function renderAnchor(url: string, children: ReactNode[], key: Key): ReactNode {
 }
 
 /**
- * The click handler for a file chip.
- *
- * The Host's own chip opens through the nearest `MarkdownDelegateProvider`, and that is
- * the route that reaches the right-hand preview panel. The owner passes that same
- * opener in as `context.openFile`; a mention's own opener is the fallback for scopes
- * that provide none.
+ * The click handler for a file chip. The Host's own chip opens through the nearest
+ * `MarkdownDelegateProvider` — the route that reaches the right-hand preview panel — and
+ * the owner passes that opener in as `context.openFile`. A mention's own opener is the
+ * fallback for scopes that provide none.
  * @param context - the render context.
  * @param path - the file to open.
  * @param mention - the vocabulary result, when the token resolved to a known file.
@@ -673,7 +661,7 @@ function renderImage(
     }
   }
   if (imageSrc === undefined) {
-    return <UnavailableImage key={key} alt={alt} destination={url} state="unresolved" />;
+    return <UnavailableImage key={key} alt={alt} destination={url} state="unresolved" />
   }
   // `![alt](path)` is a picture reference: the original view shows the picture and
   // nothing else, so this keeps that and adds no chip. The file-name chip in the
@@ -773,32 +761,41 @@ function pictureForMention(token: string, context: MarkdownRenderContext): React
  * report this placeholder answers. The authored destination is shown so the
  * path can be copied even when it cannot be rendered.
  */
-export function UnavailableImage({
-  alt,
-  destination,
-  state
-}: {
-  alt: string;
-  destination: string;
-  state: 'unresolved' | 'failed';
-}): ReactNode {
+export function UnavailableImage({ alt, destination, state }: { alt: string; destination: string; state: 'unresolved' | 'failed' }): ReactNode {
   return (
-    <span
-      className={css.imageUnavailable}
-      data-markdown-image-unavailable={state}
-      role="img"
-      aria-label={alt || destination}
-    >
-      <span className={css.imageUnavailableGlyph} aria-hidden="true">
-        🖼
-      </span>
+    <span className={css.imageUnavailable} data-markdown-image-unavailable={state} role="img" aria-label={alt || destination}>
+      <span className={css.imageUnavailableGlyph} aria-hidden="true">🖼</span>
       <span className={css.imageUnavailableCopy}>
         <span>{state === 'failed' ? '图片加载失败' : '此图片无法在阅读页显示'}</span>
         {alt && <span className={css.imageUnavailableAlt}>{alt}</span>}
         {destination && <code className={css.imageUnavailablePath}>{destination}</code>}
       </span>
     </span>
-  );
+  )
+}
+
+// Harness 0.2.2-rc.5 render.tsx, ported: a module counter, not useId. useId
+// derives from tree position, so images at the same position in two sessions
+// would share a URL.
+let imageLoads = 0
+const nextImageLoad = (): number => ++imageLoads
+
+/**
+ * Tag a Host file-route image URL with its mount's load number. Browsers reuse a same-URL
+ * image within one document despite `no-store`, so without the tag a newly rendered image
+ * of a rewritten file would show the earlier bytes.
+ * @param url - Absolute resolved image URL; URLs outside the `api/file` route stay unchanged.
+ * @param load - Number allocated once per mounted image.
+ * @returns The URL with a `load` query parameter, or the unchanged URL.
+ */
+export function freshImageUrl(url: string, load: number): string {
+  let fresh: URL
+  try { fresh = new URL(url) }
+  catch { return url }
+  if (!fresh.pathname.endsWith('/api/file')) return url
+  // Appending preserves the resolver's existing query encoding.
+  fresh.search = `${fresh.search === '' ? '?' : `${fresh.search}&`}load=${load}`
+  return fresh.href
 }
 
 function MarkdownImage({
@@ -814,11 +811,14 @@ function MarkdownImage({
   zoomable?: boolean;
 }): ReactNode {
   const [failed, setFailed] = useState(false);
+  // A file rewritten during the session must not show its cached bytes, so each mount
+  // gets its own load tag.
+  const [load] = useState(nextImageLoad);
   if (failed) return <UnavailableImage alt={alt} destination={destination} state="failed" />;
   const picture = (
     <img
       className={css.image}
-      src={src}
+      src={freshImageUrl(src, load)}
       alt={alt}
       onError={() => {
         setFailed(true);

@@ -281,7 +281,7 @@ test('a relative image path resolves against the Session workspace', () => {
   assert.notEqual(element.type, UnavailableImage);
   assert.equal(
     pictureSrc(element),
-    'http://127.0.0.1:43127/api/file?path=C%3A%5Crepo%5Cshots%5Cplan.png'
+    'http://127.0.0.1:43127/api/file?path=C%3A%5Crepo%5Cshots%2Fplan.png'
   );
 });
 
@@ -1017,8 +1017,14 @@ test('the failed state keeps the same visible placeholder', () => {
 test('the resolver itself never rewrites a remote or data destination', () => {
   assert.equal(resolveImagePath(String.raw`C:\repo`, 'https://host/a.png'), undefined);
   assert.equal(resolveImagePath(String.raw`C:\repo`, 'data:image/png;base64,AA'), undefined);
+  // The host's own `resolveWorkspacePath` keeps the separator the author wrote; both
+  // spellings reach the same file through `api/file`.
   assert.equal(
     resolveImagePath(String.raw`C:\repo`, 'shots/a.png'),
+    String.raw`C:\repo\shots/a.png`
+  );
+  assert.equal(
+    resolveImagePath(String.raw`C:\repo`, String.raw`shots\a.png`),
     String.raw`C:\repo\shots\a.png`
   );
 });

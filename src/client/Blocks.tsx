@@ -19,6 +19,7 @@ import type {
 import { JsonBlock, MarkdownText, writeClipboard } from '@deepseek-ai/dsh-client-ui-primitives';
 import { ComposerFillContext, McpAppFrame } from './McpAppFrame.js';
 import { SoloImage } from './ImageThumb.js';
+import { imageBlob } from './image-source.js';
 import { attachmentLabel } from './image-group-order.js';
 import { formatMessageClock } from './message-chrome.js';
 import { markdownLabels, truncatedJsonLabel } from './primitive-labels.js';
@@ -111,8 +112,8 @@ export const ImageBlock = memo(function ImageBlock({
         clearTimeout(timeout);
         if (!IMAGE_TYPES.has(result.mediaType))
           throw new Error(`不支持的图片类型：${result.mediaType}`);
-        const bytes = Uint8Array.from(result.data);
-        owned = URL.createObjectURL(new Blob([bytes.buffer], { type: result.mediaType }));
+        // The read already copied the Host bytes, so this must not copy them again.
+        owned = URL.createObjectURL(imageBlob(result.data, result.mediaType));
         setUrl(owned);
       })
       .catch((reason: unknown) => {

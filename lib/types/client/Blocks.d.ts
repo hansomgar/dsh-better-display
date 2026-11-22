@@ -40,7 +40,11 @@ type TextPresentation = {
     interrupted?: boolean;
     liveText?: boolean;
 };
+<<<<<<< HEAD
 export declare const Blocks: import("react").MemoExoticComponent<({ blocks, streaming, source, holdFormatting, startedAt, interrupted, liveText, renderSlotChain, loadImage, fillComposer, fileMentions, cwd, official, openFile }: BlockRenderProps & TextPresentation & {
+=======
+export declare const Blocks: import("react").MemoExoticComponent<({ blocks, streaming, source, holdFormatting, startedAt, interrupted, liveText, renderSlotChain, loadImage, fillComposer, fileMentions, cwd }: BlockRenderProps & TextPresentation & {
+>>>>>>> origin/main
     blocks: readonly AssistantBlock[];
     streaming?: boolean;
     source?: ReaderBlockOwner["source"];
