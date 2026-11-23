@@ -1,0 +1,34 @@
+# `lib/` is build output that ships in the repo. Pin its line endings so a Windows
+# checkout with `core.autocrlf=true` cannot turn it into CRLF: a bundled client carrying
+# `\r\n` was called out in review once, and nothing in the build depends on the platform.
+lib/** text eol=lf
+
+# Sources, data and docs are the same everywhere. Keeping them LF makes a diff
+# independent of who committed it.
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.css   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.map   text eol=lf
+*.txt   text eol=lf
+
+# Windows-only scripts keep the ending their interpreter expects.
+*.ps1   text eol=crlf
+*.cmd   text eol=crlf
+*.bat   text eol=crlf
+
+# Assets are not text; never touch them.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
