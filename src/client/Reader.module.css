@@ -560,7 +560,37 @@
 .lightboxButton:hover { background: var(--dsw-alias-interactive-bg-hover, transparent); color: var(--dsw-alias-label-primary); }
 .lightboxScale { min-width: 52px; text-align: center; color: var(--dsw-alias-label-secondary);
   font-size: 13px; font-variant-numeric: tabular-nums; }
+/* `display` stays off the closed dialog: the UA hides it with `display: none`, and a
+   flex rule without `[open]` would keep a closed viewer on screen. */
+.imageDialog[open] { display: flex; flex-direction: column; overflow: hidden; }
 .dialogClose { position: absolute; right: 8px; top: 4px; border: 0; background: transparent; color: inherit; width: 32px; height: 32px; border-radius: 8px; font-size: 24px; }
+/* The stage is the scrollport. It stays a block box: a flex scrollport still
+   centres an oversized child through `margin: auto` (Chromium gives the negative
+   free space to those margins), so the picture's start is not the scroll origin
+   and a cursor zoom lands in the wrong place. The inner box centres a smaller
+   picture with `margin: auto` plus its own flex alignment. */
+.imageStage { flex: 1 1 auto; min-height: 0; overflow: auto;
+  width: 82vw; height: 75vh; max-width: 100%; max-height: calc(90vh - 110px);
+  touch-action: none; cursor: grab; overscroll-behavior: contain; scrollbar-width: thin;
+  outline: none; }
+.imageStage[data-dragging] { cursor: grabbing; }
+.imageStageInner { display: flex; align-items: center; justify-content: center;
+  width: max-content; min-width: 100%; height: max-content; min-height: 100%;
+  margin: auto; will-change: transform; }
+.imageStageInner img { max-width: none; max-height: none; display: block; object-fit: contain;
+  user-select: none; -webkit-user-drag: none; }
+.lightboxHeader { display: flex; flex-direction: column; align-items: center; gap: 8px;
+  margin-bottom: 10px; }
+.lightboxCaption { max-width: 100%; border: 0; background: transparent; color: inherit;
+  font: inherit; font-size: 12px; line-height: 18px; padding: 2px 6px; border-radius: 6px;
+  cursor: copy; overflow-wrap: anywhere; text-align: center; }
+.lightboxCaption:hover { background: var(--dsw-alias-interactive-bg-hover, transparent); }
+.lightboxCaption[data-copied] { color: var(--dsw-alias-state-business-primary); }
+.lightboxToolbar { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.lightboxButton { min-width: 52px; height: 26px; padding: 0 8px; border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 7px; background: transparent; color: var(--dsw-alias-label-secondary);
+  font-size: 12px; line-height: 1; cursor: pointer; font-variant-numeric: tabular-nums; }
+.lightboxButton:hover { background: var(--dsw-alias-interactive-bg-hover, transparent); color: var(--dsw-alias-label-primary); }
 .jumpDock { position: sticky; bottom: calc(var(--dsh-composer-height, 152px) + 16px); height: 0; z-index: 8; display: flex; justify-content: flex-end; pointer-events: none; }
 .deliverablesRoot { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; column-gap: 10px; margin-top: 14px; font-size: 13px; line-height: 22px; }
 .deliverablesLabel { grid-column: 1; grid-row: 1; color: var(--dsw-alias-label-tertiary); font-size: 12px; padding-top: 2px; font-weight: 500; }

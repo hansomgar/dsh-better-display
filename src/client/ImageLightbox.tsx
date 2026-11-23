@@ -52,6 +52,14 @@ export function ImageLightbox({ viewer }: { viewer: SharedViewer }) {
   const [dragging, setDragging] = useState(false);
   /** True for a moment after the caption is double-clicked, to confirm the copy. */
   const [copied, setCopied] = useState(false);
+  /** The pending "已复制" reset, cleared on unmount. */
+  const copyTimer = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (copyTimer.current !== null) window.clearTimeout(copyTimer.current);
+    },
+    []
+  );
   /** Whether the picture currently overflows the stage; drives the minimap. */
   const [pannable, setPannable] = useState(false);
   /**
@@ -224,6 +232,9 @@ export function ImageLightbox({ viewer }: { viewer: SharedViewer }) {
     if (node === null) return undefined;
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
+      // A trackpad reports a sideways gesture as `deltaY === 0`; zooming on it would
+      // make a horizontal swipe jump the scale instead of doing nothing.
+      if (event.deltaY === 0) return;
       zoomAt(scale * Math.exp(-event.deltaY * WHEEL_FACTOR), event.clientX, event.clientY);
     };
     node.addEventListener('wheel', onWheel, { passive: false });
@@ -296,6 +307,9 @@ export function ImageLightbox({ viewer }: { viewer: SharedViewer }) {
   }, [dragging, natural, scale]);
 
   const onKeyDown = (event: React.KeyboardEvent) => {
+    // Leave the browser and OS shortcuts alone: `Ctrl`/`Cmd` + `-` is the page zoom, and
+    // swallowing it here would resize the picture instead.
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (RESET_KEYS.has(event.key)) {
       event.preventDefault();
       reset();
@@ -357,7 +371,13 @@ export function ImageLightbox({ viewer }: { viewer: SharedViewer }) {
           onDoubleClick={() => {
             void navigator.clipboard?.writeText(caption);
             setCopied(true);
-            window.setTimeout(() => setCopied(false), 1200);
+            // Held so the timer can be cleared: the dialog closes while this is
+            // pending, and a `setCopied` on an unmounted tree is a React warning.
+            if (copyTimer.current !== null) window.clearTimeout(copyTimer.current);
+            copyTimer.current = window.setTimeout(() => {
+              copyTimer.current = null;
+              setCopied(false);
+            }, 1200);
           }}
         >
           {copied ? '已复制' : caption}
