@@ -724,6 +724,10 @@ export function Reader(props: ReaderProps) {
   const clockLane = props.clockLane;
   useLayoutEffect(() => {
     clockLane?.publish({ visible: clockPinned, startTime: clockStart, fallbackStart: waitAnchor.time ?? null });
+    // The lane outlives this column: switching to 对话 unmounts the Reader while the
+    // dock entry stays registered, so the last published value would keep drawing the
+    // running row over the chat view. Withdraw it on the way out.
+    return () => clockLane?.publish({ visible: false, startTime: null, fallbackStart: null });
   }, [clockLane, clockPinned, clockStart, waitAnchor.time]);
   const clockInTranscript = clockVisible && !clockPinned;
   const scroll = useReadingScroll(root, motion);
