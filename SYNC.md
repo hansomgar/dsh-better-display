@@ -19,6 +19,10 @@ fork     https://github.com/hansomgar/dsh-better-display.git   this fork
 The working branch is **`sync/v…`**, named for the upstream release it last absorbed
 (currently `sync/v0.4.1`). It tracks `fork/sync/v0.4.1`.
 
+`BRANCHES.md` lists every other branch in the fork and says whether it is already
+contained here — GitHub's branch-description endpoint answers 404 for this repository, so
+that file is the label. Regenerate it after adding or deleting branches.
+
 ## Syncing a new upstream release
 
 ```powershell
