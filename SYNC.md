@@ -79,7 +79,7 @@ Every file that has conflicted before, and which side wins.
 | `src/client/ImageLightbox.tsx` | Ours takes a `SharedViewer` and pages `‹ 1/N ›`; upstream's takes `open`/`src`/`alt`/`caption`/`onClose` and has no pager. Take ours, then re-apply upstream's interaction fixes from *Port by hand*. |
 | `src/client/Reader.module.css` | Ours carries the minimap, pager, stage and clock rules. Take ours, and add upstream's `.imageDialog[open]` if it is absent. |
 | `CHANGELOG.md`, `README.md`, `README.en.md` | The fork's own text and version; upstream's release notes stay below ours. |
-| `package.json`, `package-lock.json` | Keep `version` = the fork's (`4.1.0`), not upstream's. Everything else follows upstream. |
+| `package.json`, `package-lock.json` | Keep `version` = the fork's own (see *Versioning*), not upstream's. Everything else follows upstream. |
 
 ### Take upstream in full
 
@@ -142,12 +142,47 @@ keeps 100% = the picture's real pixels, so a dense screenshot can be read at nat
 - The dock row registers at `order: 15` — below `ui-goal` (10) and above the queue dock
   (20), sharing a rank with neither.
 
+## Versioning
+
+The fork's version is derived from the upstream release it last absorbed, so the number
+says which upstream a build is based on.
+
+    mine.minor = upstream.minor + 10
+    mine.major = upstream.major
+    mine.patch = upstream.patch
+
+| Upstream | This fork |
+|---|---|
+| `0.4.1` | `0.14.1` |
+| `0.5.0` | `0.15.0` |
+| `0.6.1` | `0.16.1` |
+
+The `+10` keeps every fork release **greater** than the upstream it is built on, so npm
+and the Host's plugin manager treat it as an upgrade. It also cannot collide with a later
+upstream release in the same minor line.
+
+Set it in three places, and nowhere else:
+
+- `package.json` → `version`
+- `package-lock.json` → the root `version`, and `packages[""].version`
+
+Do **not** rewrite other `"version"` lines in `package-lock.json`: those belong to
+dependencies. In 0.14.1 the entries at `@deepseek-ai/cordis` and `mdast-util-phrasing` both
+read `4.1.0`, which is a coincidence with the fork's previous number, not the fork.
+
+Two rejected alternatives, for the record:
+
+- **`0.4.1.1`** — not valid semver. `semver.valid('0.4.1.1')` is `null`, and both npm and
+  the Host installer reject it.
+- **`0.4.1-1`** — valid, but semver sorts a prerelease *below* its release, so
+  `0.4.1-1 < 0.4.1`. Installing it after upstream's `0.4.1` would read as a downgrade.
+
 ## Verification after a sync
 
 ```powershell
 npm run typecheck        # tsc
 npm run lint             # eslint --max-warnings 0
-npm test                 # expect 418 passed, 0 failed at 4.1.0
+npm test                 # expect 418 passed, 0 failed at 0.14.1
 npm run build
 ```
 

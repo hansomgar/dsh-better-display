@@ -12,7 +12,7 @@
 github:aa2246740/dsh-better-display#v0.3.12
 ```
 
-桌面端的插件管理器负责 Desktop profile 和其内置包管理器。本分支版本 `4.1.0` 面向 Harness `0.2.2-rc.5`，同时保留 0.2.1 兼容：`engines.dsh` 是 `>=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.5 <0.2.3-0`。它在 upstream 0.4.0 的基础上加上了本分支自己的阅读视图功能（回合时钟、图片查看器、按轮翻页、图片链接渲染）。`lib/` 已编译好并随仓库分发；普通使用不需要 clone、构建或安装 DSHX。若应用在安装完成后提示刷新或重新打开，请按提示完成。
+桌面端的插件管理器负责 Desktop profile 和其内置包管理器。本分支版本 `0.14.1` 面向 Harness `0.2.2-rc.5`，同时保留 0.2.1 兼容：`engines.dsh` 是 `>=0.2.1-rc.1 <0.2.2-0 || >=0.2.2-rc.5 <0.2.3-0`。它在 upstream 0.4.0 的基础上加上了本分支自己的阅读视图功能（回合时钟、图片查看器、按轮翻页、图片链接渲染）。`lib/` 已编译好并随仓库分发；普通使用不需要 clone、构建或安装 DSHX。若应用在安装完成后提示刷新或重新打开，请按提示完成。
 
 ### Web CLI
 
@@ -36,7 +36,7 @@ dsh plugin --profile web add github:aa2246740/dsh-better-display#v0.3.12
 
 ```sh
 dsh plugin --profile web add ./dsh-better-display
-dsh plugin --profile web add ./dsh-better-display-4.1.0.tgz
+dsh plugin --profile web add ./dsh-better-display-0.14.1.tgz
 ```
 
 `dsh.bundle` 是开机捕获的。不要再往 profile 的 `cordis.patch.yml` 手写同一条 insert，会重复挂载。

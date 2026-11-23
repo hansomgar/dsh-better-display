@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.1.0 — 2026-11-22
+## 0.14.1 — 2026-11-23
 
 The reading view carries this fork's own work on top of upstream 0.4.0. Everything
 upstream shipped is here — the 0.2.2 support, the `apply_patch` row, the Markdown parser
