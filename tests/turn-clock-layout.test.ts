@@ -37,6 +37,9 @@ test('the running row mounts in the same dock as 任务, one band below it', () 
   // 任务 uses 0, the queue dock uses 20. Below the task card, above the input.
   assert.ok(Number(order) > 0, `the clock must sort below the 任务 row, got ${order}`);
   assert.ok(Number(order) < 20, `the clock must sort above the queue dock (20), got ${order}`);
+  // `ui-goal` also registers at 10. Two entries at one order sort by registration, which
+  // is not ours to rely on, so the clock must not share a rank with it.
+  assert.notEqual(Number(order), 10, 'the clock must not share ui-goal\'s order');
   // `locale` is what gives a dock entry its `t`, and the Host's own dock passes it.
   assert.match(registration, /locale: 'chat'/u);
   // Both rows live in the same slot, which is what puts them in one stack.
@@ -102,13 +105,25 @@ test('the done phase stops the shimmer and adds a success dot', () => {
   assert.doesNotMatch(clock, /css\.turnStatusLabel\}>[^<]*turnStatusDot/u);
 });
 
-test('the leading clock ticks in both phases', () => {
+test('the leading clock ticks in both phases, but not while the tab is hidden', () => {
   // The tick effect must not be gated on the phase: only the fields to its right
   // freeze when the turn closes.
   const effect = /const tick = \(\) => \{[\s\S]{0,220}?\};/u.exec(clock);
   assert.ok(effect, 'the tick body is present');
   assert.doesNotMatch(effect[0]!, /phase/u);
   assert.match(clock, /<WallClock now=\{now\} animated=\{running\} \/>/u);
+  // A background tab has nobody watching the digits move, so the timer stops there and
+  // the clock catches up from one Date.now() when the tab comes back.
+  assert.match(clock, /visibilitychange/u, 'the effect listens for visibility');
+  assert.match(clock, /document\.hidden/u, 'and stops while hidden');
+  assert.match(clock, /setNow\(Date\.now\(\)\)/u, 'and re-reads the clock on return');
+});
+
+test('a new turn pins the row while the Host has not built it yet', () => {
+  // Sending a second turn leaves `lastTurn` pointing at the previous, closed turn until
+  // the Host builds the new one. Reading that phase put the row in the transcript during
+  // the wait instead of pinning it over the composer.
+  assert.match(reader, /isAwaitingModel \? 'running' : turnPhase\(/u);
 });
 
 test('the lane publishes only real changes and starts idle', () => {

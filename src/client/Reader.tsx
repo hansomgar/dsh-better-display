@@ -719,7 +719,12 @@ export function Reader(props: ReaderProps) {
   const clockVisible = rowVisible(lastTurn?.status, isAwaitingModel);
   // The same verdict the transcript notice reads, so a turn that stopped or failed does
   // not get the success dot.
-  const clockPhase = turnPhase(lastTurn?.status, lastTurn?.end?.data.reason.kind);
+  //
+  // While the reader waits for the first token of a NEW turn the Host has not built that
+  // turn yet, so `lastTurn` is still the previous, closed one. Reading its phase would
+  // put the row in the transcript for that instant instead of pinning it over the
+  // composer, which is where a wait belongs.
+  const clockPhase = isAwaitingModel ? 'running' : turnPhase(lastTurn?.status, lastTurn?.end?.data.reason.kind);
   const clockPinned = pinnedInDock(clockVisible, clockPhase);
   const clockStart = lastTurn?.start?.time ?? null;
   const clockEnd = lastTurn?.end?.time ?? null;

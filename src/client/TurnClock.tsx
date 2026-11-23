@@ -114,18 +114,42 @@ export const TurnClock = memo(function TurnClock({
   const [now, setNow] = useState(() => Date.now());
   const running = phase === 'running';
 
-  // Re-align on the second boundary every tick, so the readout lands on the
-  // system clock instead of drifting by however long the first render took.
-  // The tick runs in both phases: only the fields to its right freeze.
+  // Re-align on the second boundary every tick, so the readout lands on the system clock
+  // instead of drifting by however long the first render took. The tick runs in every
+  // phase: only the fields to its right freeze, the leading wall clock keeps reading the
+  // time it is now.
+  //
+  // It stops while the tab is hidden. A background tab has no reader to see the digits
+  // move, so a once-a-second timer there is pure wakeup cost; the clock catches up from
+  // one `Date.now()` the moment the tab becomes visible again, so nothing is missed.
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = () => {
       const current = Date.now();
       setNow(current);
       timer = setTimeout(tick, untilNextSecond(current));
     };
-    timer = setTimeout(tick, untilNextSecond(Date.now()));
-    return () => clearTimeout(timer);
+    const start = () => {
+      // Catch up first: the gap while hidden must not show as a stale reading.
+      setNow(Date.now());
+      if (timer === undefined) timer = setTimeout(tick, untilNextSecond(Date.now()));
+    };
+    const stop = () => {
+      if (timer === undefined) return;
+      clearTimeout(timer);
+      timer = undefined;
+    };
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else start();
+    };
+    if (document.hidden) stop();
+    else start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, []);
 
   const start = startTime ?? fallbackStart;

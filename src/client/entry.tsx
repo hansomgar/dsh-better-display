@@ -82,15 +82,16 @@ export function installReaderEntry(ctx: Context): () => void {
   });
   const lanes = new ClockLanes()
   ctx.provide('betterDisplayClockLanes', lanes)
-  // The dock stack is a flex column sorted by ascending order. The built-in 任务
-  // row is `order: 0` and the queue dock is `order: 20`, so 10 lands the clock
-  // between them — below the task card, above the input — without depending on
-  // plugin load order. `locale` is what gives a dock entry its `t`.
+  // The dock stack is a flex column sorted by ascending order. The built-in 任务 row is
+  // `order: 0`, `ui-goal` also sits at `order: 10`, and the queue dock is `order: 20`.
+  // 15 lands the clock below the goal row and above the queue without sharing a rank with
+  // either — two entries at the same order sort by registration, which is not ours to
+  // rely on. `locale` is what gives a dock entry its `t`.
   const disposeClock = ctx.slots.register(
     {
       name: 'conversation.input.dock',
       id: 'dsh-better-display-turn-clock',
-      order: 10,
+      order: 15,
       locale: 'chat',
       inject: () => ({ lanes })
     },
