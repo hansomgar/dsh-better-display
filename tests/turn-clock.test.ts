@@ -38,11 +38,32 @@ test('elapsed time clamps a negative span instead of counting backwards', () => 
   assert.deepEqual(elapsedParts(-5_000), { minutes: null, seconds: '0' });
 });
 
-test('a closed turn is done; anything else still runs', () => {
-  assert.equal(turnPhase('closed'), 'done');
+test('a closed turn is done only when the Host says it completed', () => {
+  assert.equal(turnPhase('closed', 'completed'), 'done');
   assert.equal(turnPhase('open'), 'running');
   // No turn yet: the reader keeps the running phase for its echo window.
   assert.equal(turnPhase(undefined), 'running');
+  // A turn the reader stopped keeps its content, but it did not complete: the success
+  // dot must not appear on it.
+  assert.equal(turnPhase('closed', 'aborted'), 'stopped');
+  assert.equal(turnPhase('closed', 'interrupted'), 'stopped');
+  // The Host's other non-success verdicts.
+  assert.equal(turnPhase('closed', 'error'), 'failed');
+  assert.equal(turnPhase('closed', 'blocked'), 'failed');
+  assert.equal(turnPhase('closed', 'max-tokens'), 'failed');
+  // No reason recorded, or one this build does not know: the row stays as it was.
+  assert.equal(turnPhase('closed', null), 'done');
+  assert.equal(turnPhase('closed', undefined), 'done');
+  assert.equal(turnPhase('closed', 'something-new'), 'done');
+});
+
+test('only a completed or stopped-and-closed turn loses the dock', () => {
+  // `pinnedInDock` keys off the phase, so a turn that closed for any reason leaves the
+  // composer dock; only a running one stays pinned there.
+  assert.equal(pinnedInDock(true, 'running'), true);
+  for (const phase of ['done', 'stopped', 'failed'] as const) {
+    assert.equal(pinnedInDock(true, phase), false, `${phase} leaves the dock`);
+  }
 });
 
 test('the row stays visible for a whole turn, including after it closes', () => {

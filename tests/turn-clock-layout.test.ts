@@ -81,7 +81,7 @@ test('the finished row stays in the transcript flow', () => {
 });
 
 test('the dock reads the lane the Reader publishes', () => {
-  assert.match(entry, /inject: \(\) => \(\{ lane \}\)/u);
+  assert.match(entry, /inject: \(\) => \(\{ lanes \}\)/u);
   assert.match(reader, /clockLane\?\.publish\(\{ visible: clockPinned, startTime: clockStart/u);
   assert.match(reader, /const clockPinned = pinnedInDock\(clockVisible, clockPhase\)/u);
 });

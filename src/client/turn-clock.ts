@@ -64,19 +64,39 @@ export function elapsedParts(ms: number): ElapsedParts {
     : { minutes: null, seconds: String(total) };
 }
 
-/** The two states the row can be in. */
-export type TurnPhase = 'running' | 'done';
+/**
+ * The states the row can be in. `done` is the only one that marks success; a turn that
+ * closed without completing gets `stopped` or `failed`, so a green dot never claims a
+ * turn succeeded when it did not.
+ */
+export type TurnPhase = 'running' | 'done' | 'stopped' | 'failed';
+
+/** Reasons a closed turn did not finish its work, split by how final the stop was. */
+const STOPPED_REASONS = new Set(['aborted', 'interrupted'])
+const FAILED_REASONS = new Set(['error', 'blocked', 'max-tokens'])
 
 /**
  * Which phase a Host turn status maps to.
  *
- * Anything but `open` reads as done once the turn exists; `undefined` means the
- * Host has not built the turn yet, and the caller keeps the running phase for
- * the local-echo window instead.
+ * Anything but `open` reads as closed once the turn exists; `undefined` means the Host
+ * has not built the turn yet, and the caller keeps the running phase for the local-echo
+ * window instead.
+ *
+ * A closed turn is only `done` when the Host says it completed. `turn.end.data.reason.kind`
+ * carries that verdict and is what `terminalLabel` reads for the transcript notice, so the
+ * row uses the same source: a turn the reader stopped, or one that errored, blocked or ran
+ * out of tokens, must not show the success dot.
  * @param turnStatus - Host turn status (`open` / `closed`), or undefined.
+ * @param reason - `turn.end.data.reason.kind` for a closed turn.
  */
-export function turnPhase(turnStatus: string | undefined): TurnPhase {
-  return turnStatus === 'closed' ? 'done' : 'running';
+export function turnPhase(turnStatus: string | undefined, reason?: string | null): TurnPhase {
+  if (turnStatus !== 'closed') return 'running'
+  if (reason === null || reason === undefined) return 'done'
+  if (STOPPED_REASONS.has(reason)) return 'stopped'
+  if (FAILED_REASONS.has(reason)) return 'failed'
+  // `completed`, or a reason this build does not know: treat as success, as the row did
+  // before, because `terminalLabel` still explains the unknown case in the transcript.
+  return 'done'
 }
 
 /**

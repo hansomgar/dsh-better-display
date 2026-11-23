@@ -13,7 +13,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client';
 import { Reader } from './Reader.js';
 import { createReaderStore } from './store.js';
 import { installReaderEntry } from './entry.js';
-import type { ClockLane } from './turn-clock-lane.js';
+import type { ClockLanes } from './turn-clock-lane.js';
 import { installBetterDisplaySettings } from './settings.js';
 import { fillComposerDom } from './mcp-app.js';
 import { sessionImageLoader, type AttachmentReader } from './image-source.js';
@@ -108,10 +108,11 @@ export function apply(ctx: Context): void {
       return {
         openPrefs: prefs,
         // The composer dock that draws the running clock is its own registration and is
-        // installed after this one, so the lane is resolved on first use rather than
-        // captured here — at inject time it does not exist yet.
+        // installed after this one, so the lanes are resolved on first use. Keyed by
+        // session: one shared lane let two open sessions overwrite each other's row.
         get clockLane() {
-          return ctx.get('betterDisplayClockLane') as ClockLane | undefined;
+          const lanes = ctx.get('betterDisplayClockLanes') as ClockLanes | undefined
+          return lanes?.get(sessionId)
         },
         officialImageLoader: Object.assign(
           (attachment: ImageAttachmentRef) => ctx.uiConversation.imageUrl(sessionId, attachment),

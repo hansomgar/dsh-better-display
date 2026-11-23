@@ -142,9 +142,12 @@ export const TurnClock = memo(function TurnClock({
       {running ? (
         <span className={css.turnStatusLabel}>本轮求索中</span>
       ) : (
-        <span className={`${css.turnStatusLabel} ${css.turnStatusLabelDone}`}>
+        <span
+          className={`${css.turnStatusLabel} ${phase === 'done' ? css.turnStatusLabelDone : css.turnStatusLabelStopped}`}
+          data-reader-turn-outcome={phase}
+        >
           <span className={css.turnStatusDot} aria-hidden="true" />
-          本轮求索完成
+          {phase === 'done' ? '本轮求索完成' : phase === 'stopped' ? '本轮求索已停止' : '本轮求索未完成'}
         </span>
       )}
       <span className={css.turnStatusSep} aria-hidden="true">

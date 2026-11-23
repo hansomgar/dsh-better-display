@@ -723,9 +723,18 @@
 .turnStatusLabelDone { display: inline-flex; align-items: baseline; gap: 6px; animation: none;
   background: none; color: var(--dsw-alias-label-secondary, #b3b5bb);
   -webkit-text-fill-color: var(--dsw-alias-label-secondary, #b3b5bb); }
+/* Stopped or failed: same shape, but the dot takes the warning colour so a turn that did
+   not finish is not read as success. The word itself already says which happened. */
+.turnStatusLabelStopped { display: inline-flex; align-items: baseline; gap: 6px; animation: none;
+  background: none; color: var(--dsw-alias-label-secondary, #b3b5bb);
+  -webkit-text-fill-color: var(--dsw-alias-label-secondary, #b3b5bb); }
 .turnStatusDot { width: 6px; height: 6px; flex: none; align-self: center; border-radius: 50%;
   background: var(--dsw-alias-state-success-primary, #3fb950);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-success-primary, #3fb950) 16%, transparent); }
+/* A stopped or failed turn keeps the dot's shape but takes the warning colour: it did not
+   finish, so it must not read as success. The word already says which happened. */
+.turnStatusLabelStopped .turnStatusDot { background: var(--dsw-alias-state-warning-primary, #e0a03a);
+  box-shadow: none; }
 [data-motion=off] .turnStatusLabelDone { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .turnStatusLabelDone { animation: none !important; } }
 

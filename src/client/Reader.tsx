@@ -717,7 +717,9 @@ export function Reader(props: ReaderProps) {
       : timeline.turns.get(lastGroup.turn);
   }, [groups, timeline]);
   const clockVisible = rowVisible(lastTurn?.status, isAwaitingModel);
-  const clockPhase = turnPhase(lastTurn?.status);
+  // The same verdict the transcript notice reads, so a turn that stopped or failed does
+  // not get the success dot.
+  const clockPhase = turnPhase(lastTurn?.status, lastTurn?.end?.data.reason.kind);
   const clockPinned = pinnedInDock(clockVisible, clockPhase);
   const clockStart = lastTurn?.start?.time ?? null;
   const clockEnd = lastTurn?.end?.time ?? null;

@@ -71,3 +71,62 @@ export function createClockLane(): ClockLane {
   };
   return { read, publish, subscribe };
 }
+
+/**
+ * One lane per session, created on demand.
+ *
+ * The lane itself is a plain channel with no notion of identity, and the plugin is
+ * installed once for the whole page. A single shared lane therefore lets two open
+ * sessions overwrite each other: whichever Reader published last decided what the
+ * composer dock showed, including for the session it did not belong to.
+ *
+ * Keying by session keeps each Reader's row separate. An entry is dropped when its last
+ * subscriber leaves, so closing a session does not leak one lane per session ever opened.
+ */
+export class ClockLanes {
+  readonly #lanes = new Map<string, { lane: ClockLane; subscribers: number }>();
+
+  /**
+   * The lane for one session, created on first use.
+   * @param sessionId - the session the lane belongs to.
+   */
+  get(sessionId: string): ClockLane {
+    const existing = this.#lanes.get(sessionId);
+    if (existing !== undefined) return existing.lane;
+    const lane = createClockLane();
+    this.#lanes.set(sessionId, { lane, subscribers: 0 });
+    return lane;
+  }
+
+  /**
+   * A session's lane, with its lifetime tied to the caller.
+   *
+   * The dock entry subscribes through here, so the map entry survives exactly as long as
+   * something is watching it and is released when the session's dock unmounts.
+   * @param sessionId - the session the lane belongs to.
+   * @param listener - called on every publish.
+   * @returns the lane, and the unsubscribe that releases it.
+   */
+  hold(sessionId: string, listener: () => void): { lane: ClockLane; release: () => void } {
+    const lane = this.get(sessionId)
+    const entry = this.#lanes.get(sessionId)!
+    entry.subscribers += 1
+    const off = lane.subscribe(listener)
+    let released = false
+    return {
+      lane,
+      release: () => {
+        if (released) return
+        released = true
+        off()
+        entry.subscribers -= 1
+        if (entry.subscribers <= 0) this.#lanes.delete(sessionId)
+      }
+    }
+  }
+
+  /** How many sessions currently hold a lane; used by the tests. */
+  get size(): number {
+    return this.#lanes.size
+  }
+}
